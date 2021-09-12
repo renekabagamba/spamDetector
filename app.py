@@ -3,6 +3,10 @@ import numpy as np
 import joblib
 import os
 
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
+from textblob import Word
+
 
 app = Flask(__name__)
 
@@ -23,7 +27,9 @@ def predict():
         try:
             prediction = preprocessDataAndPredict(email_text)
             #pass prediction to template
-            return render_template('predict.html', prediction = prediction)
+            return render_template('predict.html',
+                                    email = email_text,
+                                    prediction = prediction)
 
         except ValueError:
             return "Please Enter valid values"
@@ -34,21 +40,27 @@ def predict():
 
 def preprocessDataAndPredict(email_text):
 
-    #convert value data into numpy array
-    input_data = np.array([email_text])
+    #pre processing steps like lower case, stemming and lemmatization
+    email_text = email_text.lower()
+    stop = stopwords.words('english')
 
-    #reshape array
-    input_data = input_data.reshape(1,-1)
-    print(input_data)
+    email_text = " ".join(x for x in email_text.split() if x not in stop)
+    st = PorterStemmer()
+
+    email_text = " ".join ([st.stem(word) for word in email_text.split()])
+    email_text = " ".join ([Word(word).lemmatize() for word in email_text.split()])
 
     #open file
-    file = open("spam_detector.pkl","rb")
+    file_model = open('spam_detector.pkl', "rb")
+    file_tfidf_vect = open('tfidf.pkl', "rb")
 
-    #load trained model
-    trained_model = joblib.load(file)
+    #load the trained model
+    trained_model = joblib.load(file_model)
+    tfidf_vect = joblib.load(file_tfidf_vect)
 
-    #predict
-    prediction = trained_model.predict(input_data)
+    new_email_tfidf =  tfidf_vect.transform([email_text])
+
+    prediction = trained_model.predict(new_email_tfidf)
 
     return prediction
 
