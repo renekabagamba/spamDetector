@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 import numpy as np
 import joblib
+import os
 
 
 app = Flask(__name__)
@@ -54,4 +55,4 @@ def preprocessDataAndPredict(email_text):
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=33507)
+    app.run(port=int(os.getenv('PORT')))
