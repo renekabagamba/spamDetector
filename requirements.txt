@@ -4,3 +4,4 @@ numpy==1.20.1
 joblib==1.0.1
 nltk==3.6.2
 textblob
+sklearn=0.24.2
